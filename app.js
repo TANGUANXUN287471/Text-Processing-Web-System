@@ -102,6 +102,79 @@ async function checkGrammar() {
         grammarResult.innerHTML += '<p>Error checking grammar. Please try again.</p>';
     }
 }
+let recognition;
+let isListening = false;
+
+function startSpeechRecognition() {
+    const textInput = document.getElementById('textInput');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    try {
+        textInput.value = '';
+        statusMessage.innerText = 'Recording...';  // Display status message
+
+        recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+        recognition.lang = 'en-US';
+
+        recognition.onstart = function() {
+            isListening = true;
+            startBtn.innerText = 'Listening...';
+            stopBtn.disabled = false;
+        };
+
+        recognition.onresult = function(event) {
+            const transcription = event.results[0][0].transcript;
+            textInput.value = transcription;
+        };
+
+        recognition.onend = function() {
+            isListening = false;
+            startBtn.innerText = 'Start Listening';
+            textInput.value += ' (Speech recognition completed.)';
+            statusMessage.innerText = '';  // Clear status message
+        };
+
+        recognition.start();
+    } catch (error) {
+        console.error('Error starting speech-to-text:', error);
+        textInput.value = 'Error during speech recognition. Please try again.';
+        statusMessage.innerText = '';  // Clear status message
+    }
+}
+
+function stopSpeechRecognition() {
+    if (recognition) {
+        recognition.stop();
+        recognition = null;
+    }
+
+    isListening = false;
+
+    // Check if the elements exist before modifying properties
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    if (startBtn) {
+        startBtn.innerText = 'Start Listening';
+    }
+
+    if (stopBtn) {
+        stopBtn.disabled = true;
+    }
+
+    if (statusMessage) {
+        statusMessage.innerText = 'Recording stopped';  // Display status message
+
+        // Clear status message after a short delay (adjust as needed)
+        setTimeout(() => {
+            statusMessage.innerText = '';
+        }, 2000);
+    }
+}
+
 
 function populateLanguageDropdowns() {
     const fromLanguageDropdown = document.getElementById('fromLanguage');
