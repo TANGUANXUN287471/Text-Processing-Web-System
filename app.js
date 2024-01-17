@@ -1,9 +1,9 @@
-let audioContainer; // Declare a global variable to store the container for speech text and audio
+let audioContainer;
 
 async function convertTextToSpeech() {
     const textInput = document.getElementById('textInput').value;
     const outputElement = document.getElementById('output');
-    audioContainer = document.getElementById('audioContainer'); // Get the audio container
+    audioContainer = document.getElementById('audioContainer');
 
     if (textInput.trim() === '') {
         alert('Please enter some text.');
@@ -11,7 +11,6 @@ async function convertTextToSpeech() {
     }
 
     try {
-        // Remove the existing audio container if it exists
         if (audioContainer) {
             audioContainer.parentNode.removeChild(audioContainer);
         }
@@ -19,13 +18,12 @@ async function convertTextToSpeech() {
         const response = await fetch('https://text-to-speech27.p.rapidapi.com/speech?text=' + encodeURIComponent(textInput) + '&lang=en-us', {
             method: 'GET',
             headers: {
-                'X-RapidAPI-Key': 'x',
+                'X-RapidAPI-Key': '5e2ccdc186msh5f6f488575d3757p125196jsn4ba6bcb25bed',
                 'X-RapidAPI-Host': 'text-to-speech27.p.rapidapi.com'
             }
         });
 
         if (!response.ok) {
-            // Log the error status and text
             console.error('Error:', response.status, response.statusText);
             alert('Error converting text to speech. Please try again.');
             return;
@@ -34,22 +32,16 @@ async function convertTextToSpeech() {
         const audioData = await response.blob();
         const audioUrl = URL.createObjectURL(audioData);
 
-        // Create a new audio container dynamically
         audioContainer = document.createElement('div');
         audioContainer.id = 'audioContainer';
 
-        // Create a new audio element dynamically
         const audioElement = new Audio(audioUrl);
-        audioElement.controls = true; // Show audio controls
-        audioElement.autoplay = true; // Autoplay the synthesized speech
+        audioElement.controls = true;
+        audioElement.autoplay = true;
 
-        // Display the text in the output element
         outputElement.textContent = textInput;
 
-        // Append the audio element to the container
         audioContainer.appendChild(audioElement);
-
-        // Append the audio container below the output element
         outputElement.parentNode.insertBefore(audioContainer, outputElement.nextSibling);
 
     } catch (error) {
@@ -58,71 +50,106 @@ async function convertTextToSpeech() {
     }
 }
 
-// Rest of the code remains unchanged
-
-
 async function checkGrammar() {
-    const textInput = document.getElementById('textInput').value;
-    const grammarResultElement = document.getElementById('grammarResult');
+    const textInput = document.getElementById('textInput').value.trim();
+    const grammarResult = document.getElementById('grammarResult');
 
-    if (textInput.trim() === '') {
-        alert('Please enter some text.');
+    if (textInput === '') {
+        alert('Please enter text for grammar check.');
         return;
     }
 
     try {
+        grammarResult.innerHTML = '<div class="audio-title">Grammar Check Result</div>';
         const encodedParams = new URLSearchParams();
         encodedParams.set('text', textInput);
         encodedParams.set('language', 'en-US');
 
-        const response = await axios.post('https://grammarbot.p.rapidapi.com/check', encodedParams, {
+        const options = {
+            method: 'POST',
+            url: 'https://grammarbot.p.rapidapi.com/check',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-RapidAPI-Key': 'x',
+                'content-type': 'application/x-www-form-urlencoded',
+                'X-RapidAPI-Key': '5e2ccdc186msh5f6f488575d3757p125196jsn4ba6bcb25bed',
                 'X-RapidAPI-Host': 'grammarbot.p.rapidapi.com'
             },
-        });
+            data: encodedParams,
+        };
 
-        const results = response.data.matches;
+        const response = await axios.request(options);
+        const result = response.data;
 
-        // Clear previous results
-        grammarResultElement.innerHTML = '';
-
-        if (results.length > 0) {
-            // Display grammar check results
-            const resultContainer = document.createElement('div');
-            resultContainer.innerHTML = '<h3>Grammar Check Results:</h3>';
-
-            results.forEach((match, index) => {
-                const matchElement = document.createElement('div');
-                matchElement.classList.add('grammar-issue');
-
-                const issueHeader = document.createElement('p');
-                issueHeader.innerHTML = `<strong>Issue ${index + 1}:</strong>`;
-
-                const issueDetails = document.createElement('p');
-                issueDetails.innerHTML = `
-                    <strong>Details:</strong> ${match.message}<br>
-                    <strong>Affected Text:</strong> ${match.context.text}<br>
-                    <strong>Suggested Replacements:</strong> ${match.replacements.map(rep => rep.value).join(', ')}
+        if (result.matches && result.matches.length > 0) {
+            const issuesHTML = result.matches.map((issue, index) => {
+                return `
+                    <div class="grammar-issue">
+                        <div class="audio-title">Issue ${index + 1}</div>
+                        <p><strong>Details:</strong> ${issue.message}</p>
+                        <p><strong>Affected Text:</strong> ${issue.context.text}</p>
+                        <p><strong>Suggested Replacements:</strong> ${issue.replacements.map(replacement => replacement.value).join(', ')}</p>
+                        <hr>
+                    </div>
                 `;
+            }).join('');
 
-                matchElement.appendChild(issueHeader);
-                matchElement.appendChild(issueDetails);
-
-                resultContainer.appendChild(matchElement);
-            });
-
-            grammarResultElement.appendChild(resultContainer);
+            grammarResult.innerHTML += issuesHTML;
         } else {
-            // No grammar issues found
-            grammarResultElement.innerHTML = '<p>No grammar issues found.</p>';
+            grammarResult.innerHTML += '<p>No grammar issues found.</p>';
         }
 
-        // Notify the user that the grammar check is complete
-        alert('Grammar check complete. Check the grammar result section for details.');
     } catch (error) {
-        console.error(error);
-        alert('Error checking grammar. Please try again.');
+        console.error('Error checking grammar:', error);
+        grammarResult.innerHTML += '<p>Error checking grammar. Please try again.</p>';
     }
 }
+
+function populateLanguageDropdowns() {
+    const fromLanguageDropdown = document.getElementById('fromLanguage');
+    const toLanguageDropdown = document.getElementById('toLanguage');
+
+    for (let country_code in countries) {
+        const option = document.createElement('option');
+        option.value = country_code;
+        option.textContent = countries[country_code];
+
+        fromLanguageDropdown.appendChild(option.cloneNode(true));
+        toLanguageDropdown.appendChild(option);
+    }
+
+    // Set default languages
+    fromLanguageDropdown.value = 'en-GB';
+    toLanguageDropdown.value = 'es-ES';
+}
+
+function translateText() {
+    const fromText = document.getElementById('textInput').value.trim();
+    const toText = document.getElementById('translationResult');
+    const fromLanguage = document.getElementById('fromLanguage').value;
+    const toLanguage = document.getElementById('toLanguage').value;
+
+    if (fromText === '') {
+        alert('Please enter text for translation.');
+        return;
+    }
+
+    try {
+        toText.innerHTML = '<div class="audio-title">Translation Result</div><p>Translating...</p>';
+        const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(fromText)}&langpair=${fromLanguage}|${toLanguage}`;
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data.responseData) {
+                    toText.innerHTML = `<div class="audio-title">Translation Result</div><p>${data.responseData.translatedText}</p>`;
+                } else {
+                    toText.innerHTML = '<div class="audio-title">Translation Result</div><p>Error translating text. Please try again.</p>';
+                }
+            });
+
+    } catch (error) {
+        console.error('Error translating text:', error);
+        toText.innerHTML = '<div class="audio-title">Translation Result</div><p>Error translating text. Please try again.</p>';
+    }
+}
+
+// Call the function to populate language dropdowns on page load
+populateLanguageDropdowns();
