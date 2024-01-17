@@ -18,7 +18,7 @@ async function convertTextToSpeech() {
         const response = await fetch('https://text-to-speech27.p.rapidapi.com/speech?text=' + encodeURIComponent(textInput) + '&lang=en-us', {
             method: 'GET',
             headers: {
-                'X-RapidAPI-Key': 'af21f92435mshab8b105b07cda31p138f82jsneeac105dfa6f',
+                'X-RapidAPI-Key': 'x',
                 'X-RapidAPI-Host': 'text-to-speech27.p.rapidapi.com'
             }
         });
@@ -70,7 +70,7 @@ async function checkGrammar() {
             url: 'https://grammarbot.p.rapidapi.com/check',
             headers: {
                 'content-type': 'application/x-www-form-urlencoded',
-                'X-RapidAPI-Key': '5e2ccdc186msh5f6f488575d3757p125196jsn4ba6bcb25bed',
+                'X-RapidAPI-Key': 'x',
                 'X-RapidAPI-Host': 'grammarbot.p.rapidapi.com'
             },
             data: encodedParams,
